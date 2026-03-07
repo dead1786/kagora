@@ -396,10 +396,10 @@ app.whenReady().then(() => {
 
   // Wire PTY data/exit events to renderer
   terminalManager.onData((agentId, data) => {
-    mainWindow?.webContents.send('terminal:data', agentId, data)
+    if (!mainWindow?.isDestroyed()) mainWindow?.webContents.send('terminal:data', agentId, data)
   })
   terminalManager.onExit((agentId, code) => {
-    mainWindow?.webContents.send('terminal:exit', agentId, code)
+    if (!mainWindow?.isDestroyed()) mainWindow?.webContents.send('terminal:exit', agentId, code)
   })
 
   setupIPC()

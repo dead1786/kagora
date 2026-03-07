@@ -157,8 +157,10 @@ export class TerminalManager {
   }
 
   destroyAll() {
+    this.dataHandler = null
+    this.exitHandler = null
     this.terminals.forEach((term) => {
-      term.process.kill()
+      try { term.process.kill() } catch { /* ignore */ }
     })
     this.terminals.clear()
   }

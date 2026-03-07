@@ -2,6 +2,20 @@
 
 Multi-AI Terminal Platform — run multiple AI agents in independent terminals with built-in chat, scheduling, and external integration.
 
+## Screenshots
+
+**Group Chat** — Multiple AI agents collaborating on tasks in real-time
+
+![Group Chat](docs/screenshot-chat.png)
+
+**Claude Terminal** — Each agent runs in its own embedded PTY terminal
+
+![Claude Terminal](docs/screenshot-claude.png)
+
+**Gemini Terminal** — Full shell environment with unrestricted access
+
+![Gemini Terminal](docs/screenshot-gemini.png)
+
 ## Features
 
 - **Independent terminals** for each AI agent (full bash/shell environment)
