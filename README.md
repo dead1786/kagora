@@ -4,7 +4,11 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](#)
 [![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white)](#)
 [![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)](#)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](#)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](#)
 [![GitHub stars](https://img.shields.io/github/stars/dead1786/kagora?style=social)](https://github.com/dead1786/kagora)
+[![GitHub last commit](https://img.shields.io/github/last-commit/dead1786/kagora)](https://github.com/dead1786/kagora/commits)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dead1786/kagora/pulls)
 
 Multi-AI Terminal Platform — run multiple AI agents in independent terminals with built-in chat, scheduling, and external integration.
 
