@@ -1,5 +1,11 @@
 # Kagora
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](#)
+[![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white)](#)
+[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)](#)
+[![GitHub stars](https://img.shields.io/github/stars/dead1786/kagora?style=social)](https://github.com/dead1786/kagora)
+
 Multi-AI Terminal Platform — run multiple AI agents in independent terminals with built-in chat, scheduling, and external integration.
 
 ## Screenshots
