@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useT } from '../i18n'
 
 interface ChatMessage {
   id: string
@@ -29,6 +30,7 @@ export default function ChatPanel({ channel, adminName }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const t = useT()
 
   useEffect(() => {
     window.kagora.getChatHistory(channel).then(setMessages)
@@ -55,13 +57,13 @@ export default function ChatPanel({ channel, adminName }: ChatPanelProps) {
   return (
     <div className="chat-panel">
       <div className="chat-header">
-        {channel === 'group' ? '# Group' : `DM - ${channel}`}
+        {channel === 'group' ? t('chat.group') : `${t('chat.dmPrefix')} ${channel}`}
       </div>
 
       <div className="chat-messages">
         {messages.length === 0 && (
           <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: 40 }}>
-            No messages yet
+            {t('chat.noMessages')}
           </div>
         )}
         {messages.filter(msg => msg && msg.from).map(msg => (
@@ -94,7 +96,7 @@ export default function ChatPanel({ channel, adminName }: ChatPanelProps) {
           className="chat-input"
           autoFocus
           rows={1}
-          placeholder={channel === 'group' ? 'Message #group... (Shift+Enter to newline)' : `Message ${channel}...`}
+          placeholder={channel === 'group' ? t('chat.groupPlaceholder') : `${t('chat.dmPlaceholder')} ${channel}...`}
           value={input}
           onChange={e => {
             setInput(e.target.value)

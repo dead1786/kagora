@@ -5,6 +5,7 @@ import ChatPanel from './components/ChatPanel'
 import SettingsPanel from './components/SettingsPanel'
 import DMLogPanel from './components/DMLogPanel'
 import AutomationsPanel from './components/AutomationsPanel'
+import { LanguageContext, type Language } from './i18n'
 
 interface Agent {
   id: string
@@ -19,6 +20,8 @@ interface Settings {
   adminName: string
   defaultShell: string
   terminalFontSize: number
+  uiFontSize: number
+  language: string
   clearChatOnExit: boolean
 }
 
@@ -37,6 +40,13 @@ export default function App() {
     window.kagora.getAgents().then(setAgents)
     window.kagora.getSettings().then(setSettings)
   }, [])
+
+  // Apply UI font size as CSS variable
+  useEffect(() => {
+    if (settings?.uiFontSize) {
+      document.documentElement.style.setProperty('--ui-font-size', `${settings.uiFontSize}px`)
+    }
+  }, [settings?.uiFontSize])
 
   const handleAddAgent = async (name: string, shell?: string) => {
     const agent: Agent = {
@@ -63,64 +73,68 @@ export default function App() {
     setAgents(updated)
   }
 
+  const language = (settings?.language || 'en') as Language
+
   return (
-    <div className="app">
-      <div className="titlebar" />
-      <div className="app-body">
-        <Sidebar
-          agents={agents}
-          activeView={activeView}
-          onSelect={setActiveView}
-          onAdd={() => setShowAddDialog(true)}
-          onRemove={handleRemoveAgent}
-          adminName={settings?.adminName}
-        />
-        <div className="main-content">
-          {activeView === 'group' && (
-            <ChatPanel channel="group" adminName={settings?.adminName} />
-          )}
-          {activeView === 'dm-log' && <DMLogPanel />}
-          {activeView === 'automations' && <AutomationsPanel />}
-          {activeView === 'settings' && (
-            <SettingsPanel onSettingsChange={setSettings} />
-          )}
+    <LanguageContext.Provider value={language}>
+      <div className="app">
+        <div className="titlebar" />
+        <div className="app-body">
+          <Sidebar
+            agents={agents}
+            activeView={activeView}
+            onSelect={setActiveView}
+            onAdd={() => setShowAddDialog(true)}
+            onRemove={handleRemoveAgent}
+            adminName={settings?.adminName}
+          />
+          <div className="main-content" style={{ fontSize: 'var(--ui-font-size, 14px)' }}>
+            {activeView === 'group' && (
+              <ChatPanel channel="group" adminName={settings?.adminName} />
+            )}
+            {activeView === 'dm-log' && <DMLogPanel />}
+            {activeView === 'automations' && <AutomationsPanel />}
+            {activeView === 'settings' && (
+              <SettingsPanel onSettingsChange={setSettings} />
+            )}
 
-          {agents.map(agent => (
-            <div
-              key={agent.id}
-              className="terminal-wrapper"
-              style={{ display: activeView === agent.id ? 'flex' : 'none' }}
-            >
-              <TerminalPanel
-                agentId={agent.id}
-                isActive={activeView === agent.id}
-                shell={agent.shell || settings?.defaultShell}
-                fontSize={settings?.terminalFontSize}
-                startupCommand={agent.startupCommand}
-                onStartupCommandChange={handleStartupCommandChange}
-              />
-            </div>
-          ))}
+            {agents.map(agent => (
+              <div
+                key={agent.id}
+                className="terminal-wrapper"
+                style={{ display: activeView === agent.id ? 'flex' : 'none' }}
+              >
+                <TerminalPanel
+                  agentId={agent.id}
+                  isActive={activeView === agent.id}
+                  shell={agent.shell || settings?.defaultShell}
+                  fontSize={settings?.terminalFontSize}
+                  startupCommand={agent.startupCommand}
+                  onStartupCommandChange={handleStartupCommandChange}
+                />
+              </div>
+            ))}
 
-          {activeView !== 'group' && !agents.find(a => a.id === activeView) && (
-            <div className="welcome">
-              <h2>Kagora</h2>
-              <p>Multi-AI Terminal Platform</p>
-              <button className="add-btn" onClick={() => setShowAddDialog(true)}>
-                + New Agent
-              </button>
-            </div>
-          )}
+            {!['group', 'dm-log', 'automations', 'settings'].includes(activeView) && !agents.find(a => a.id === activeView) && (
+              <div className="welcome">
+                <h2>Kagora</h2>
+                <p>Multi-AI Terminal Platform</p>
+                <button className="add-btn" onClick={() => setShowAddDialog(true)}>
+                  + New Agent
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {showAddDialog && (
-        <AddAgentDialog
-          onAdd={handleAddAgent}
-          onClose={() => setShowAddDialog(false)}
-        />
-      )}
-    </div>
+        {showAddDialog && (
+          <AddAgentDialog
+            onAdd={handleAddAgent}
+            onClose={() => setShowAddDialog(false)}
+          />
+        )}
+      </div>
+    </LanguageContext.Provider>
   )
 }
 

@@ -193,10 +193,10 @@ body {
 }
 
 .chat-header {
-  padding: 12px 20px;
+  padding: 6px 16px;
   border-bottom: 1px solid var(--border);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .chat-messages {
@@ -450,17 +450,16 @@ body {
 }
 
 .settings-header {
-  padding: 12px 20px;
+  padding: 6px 16px;
   border-bottom: 1px solid var(--border);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .settings-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
-  max-width: 560px;
+  padding: 24px 32px;
   min-height: 0;
 }
 

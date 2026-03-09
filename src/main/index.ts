@@ -174,6 +174,12 @@ function setupIPC() {
     if (typeof partial?.terminalFontSize === 'number') {
       safe.terminalFontSize = Math.max(8, Math.min(32, partial.terminalFontSize))
     }
+    if (typeof partial?.uiFontSize === 'number') {
+      safe.uiFontSize = Math.max(10, Math.min(24, partial.uiFontSize))
+    }
+    if (typeof partial?.language === 'string' && ['en', 'zh-TW', 'zh-CN', 'ja', 'ko'].includes(partial.language)) {
+      safe.language = partial.language
+    }
     if (typeof partial?.clearChatOnExit === 'boolean') safe.clearChatOnExit = partial.clearChatOnExit
     chatStore.updateSettings(safe)
     return chatStore.getSettings()

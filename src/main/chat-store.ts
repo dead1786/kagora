@@ -22,6 +22,8 @@ export interface KagoraSettings {
   adminName: string
   defaultShell: string
   terminalFontSize: number
+  uiFontSize: number
+  language: string
   clearChatOnExit: boolean
 }
 
@@ -29,6 +31,8 @@ const DEFAULT_SETTINGS: KagoraSettings = {
   adminName: 'Admin',
   defaultShell: '',
   terminalFontSize: 14,
+  uiFontSize: 14,
+  language: 'en',
   clearChatOnExit: false
 }
 

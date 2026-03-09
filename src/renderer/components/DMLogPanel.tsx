@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useT } from '../i18n'
 
 interface ChatMessage {
   id: string
@@ -28,6 +29,7 @@ export default function DMLogPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [filter, setFilter] = useState<string>('all')
   const messagesRef = useRef<HTMLDivElement>(null)
+  const t = useT()
 
   useEffect(() => {
     window.kagora.getChatHistory('dm-log').then(setMessages)
@@ -56,13 +58,13 @@ export default function DMLogPanel() {
   return (
     <div className="chat-panel">
       <div className="chat-header dm-log-header">
-        <span>DM Log</span>
+        <span>{t('dm.title')}</span>
         <select
           className="dm-filter"
           value={filter}
           onChange={e => setFilter(e.target.value)}
         >
-          <option value="all">All conversations</option>
+          <option value="all">{t('dm.allConversations')}</option>
           {conversations.map(c => (
             <option key={c} value={c}>{c}</option>
           ))}
@@ -72,7 +74,7 @@ export default function DMLogPanel() {
       <div className="chat-messages" ref={messagesRef}>
         {filtered.length === 0 && (
           <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: 40 }}>
-            No private messages yet
+            {t('dm.noMessages')}
           </div>
         )}
         {filtered.map(msg => (

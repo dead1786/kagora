@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useT } from '../i18n'
 
 interface Automation {
   id: string
@@ -14,6 +15,7 @@ interface Automation {
 export default function AutomationsPanel() {
   const [automations, setAutomations] = useState<Automation[]>([])
   const [showAdd, setShowAdd] = useState(false)
+  const t = useT()
 
   useEffect(() => {
     window.kagora.getAutomations().then(setAutomations)
@@ -38,13 +40,13 @@ export default function AutomationsPanel() {
   return (
     <div className="settings-panel">
       <div className="settings-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span>Automations</span>
-        <button className="auto-add-btn" onClick={() => setShowAdd(true)}>+ Add</button>
+        <span>{t('auto.title')}</span>
+        <button className="auto-add-btn" onClick={() => setShowAdd(true)}>{t('auto.add')}</button>
       </div>
-      <div className="settings-body" style={{ maxWidth: '100%', overflowY: 'auto' }}>
+      <div className="settings-body" style={{ overflowY: 'auto' }}>
         {automations.length === 0 && !showAdd && (
           <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: 40 }}>
-            No automations configured yet.
+            {t('auto.empty')}
           </div>
         )}
 
@@ -92,21 +94,21 @@ export default function AutomationsPanel() {
               )}
               <div className="auto-card-body">
                 <div className="auto-field">
-                  <span className="auto-label">Script</span>
+                  <span className="auto-label">{t('auto.script')}</span>
                   <span className="auto-value mono">{auto.script}</span>
                 </div>
                 <div className="auto-field">
-                  <span className="auto-label">Target</span>
+                  <span className="auto-label">{t('auto.target')}</span>
                   <span className="auto-value">{auto.target}</span>
                 </div>
                 <div className="auto-field">
-                  <span className="auto-label">Schedule</span>
+                  <span className="auto-label">{t('auto.schedule')}</span>
                   <span className="auto-value">{auto.schedule}</span>
                 </div>
                 <div className="auto-field">
-                  <span className="auto-label">Method</span>
+                  <span className="auto-label">{t('auto.method')}</span>
                   <span className="auto-value">
-                    {auto.method === 'chat' ? 'Chat API' : 'Terminal Inject'}
+                    {auto.method === 'chat' ? t('auto.methodChat') : t('auto.methodInject')}
                   </span>
                 </div>
               </div>
@@ -128,34 +130,35 @@ function AddForm({ onAdd, onCancel }: {
   const [target, setTarget] = useState('')
   const [schedule, setSchedule] = useState('')
   const [method, setMethod] = useState<'chat' | 'inject'>('inject')
+  const t = useT()
 
   const canSubmit = name && script && target && schedule
 
   return (
     <div className="auto-add-form">
-      <h4>New Automation</h4>
-      <input placeholder="Name (e.g. Heartbeat Check)" value={name} onChange={e => setName(e.target.value)} autoFocus />
+      <h4>{t('auto.newTitle')}</h4>
+      <input placeholder={t('auto.namePlaceholder')} value={name} onChange={e => setName(e.target.value)} autoFocus />
       <input
-        placeholder="Description / Notes"
+        placeholder={t('auto.descPlaceholder')}
         value={description}
         onChange={e => setDescription(e.target.value)}
         style={{ color: 'var(--text-secondary)' }}
       />
-      <input placeholder="Script path (e.g. ~/scripts/heartbeat.py)" value={script} onChange={e => setScript(e.target.value)} />
-      <input placeholder="Target agent ID (e.g. shrimp)" value={target} onChange={e => setTarget(e.target.value)} />
-      <input placeholder="Schedule (e.g. interval:180, daily:08:00)" value={schedule} onChange={e => setSchedule(e.target.value)} />
+      <input placeholder={t('auto.scriptPlaceholder')} value={script} onChange={e => setScript(e.target.value)} />
+      <input placeholder={t('auto.targetPlaceholder')} value={target} onChange={e => setTarget(e.target.value)} />
+      <input placeholder={t('auto.schedulePlaceholder')} value={schedule} onChange={e => setSchedule(e.target.value)} />
       <div className="auto-method-row">
         <label>
           <input type="radio" name="method" checked={method === 'inject'} onChange={() => setMethod('inject')} />
-          Terminal Inject
+          {t('auto.methodInject')}
         </label>
         <label>
           <input type="radio" name="method" checked={method === 'chat'} onChange={() => setMethod('chat')} />
-          Chat API
+          {t('auto.methodChat')}
         </label>
       </div>
       <div className="dialog-actions">
-        <button onClick={onCancel}>Cancel</button>
+        <button onClick={onCancel}>{t('auto.cancel')}</button>
         <button
           className="primary"
           disabled={!canSubmit}
@@ -164,7 +167,7 @@ function AddForm({ onAdd, onCancel }: {
             description: description.trim() || undefined
           })}
         >
-          Add
+          {t('auto.addBtn')}
         </button>
       </div>
     </div>
