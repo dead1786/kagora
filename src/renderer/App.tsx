@@ -33,7 +33,9 @@ const AGENT_COLORS = [
   '#ff7b72', '#79c0ff', '#ffa657', '#56d364'
 ]
 
-const ACTIVE_TIMEOUT = 3000 // 3 seconds of no output = idle
+const ACTIVE_TIMEOUT = 8000 // 8 seconds of no substantial output = idle
+const ACTIVE_THRESHOLD = 50 // bytes of data needed within window to count as "active"
+const ACTIVE_WINDOW = 2000  // 2-second sliding window for data accumulation
 
 export default function App() {
   const [agents, setAgents] = useState<Agent[]>([])
@@ -43,6 +45,7 @@ export default function App() {
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentActivity>>({})
   const lastDataTime = useRef<Record<string, number>>({})
   const terminalAlive = useRef<Record<string, boolean>>({})
+  const dataAccum = useRef<Record<string, number>>({})
 
   useEffect(() => {
     window.kagora.getAgents().then(setAgents)
@@ -51,10 +54,22 @@ export default function App() {
 
   // Track terminal activity for status indicators
   useEffect(() => {
-    const removeData = window.kagora.onTerminalData((agentId: string) => {
-      lastDataTime.current[agentId] = Date.now()
+    const removeData = window.kagora.onTerminalData((agentId: string, data: string) => {
+      const now = Date.now()
+      const lastTime = lastDataTime.current[agentId] || 0
       terminalAlive.current[agentId] = true
-      setAgentStatuses(prev => ({ ...prev, [agentId]: 'active' }))
+
+      // Reset accumulator if last data was too long ago
+      if (now - lastTime > ACTIVE_WINDOW) {
+        dataAccum.current[agentId] = 0
+      }
+      dataAccum.current[agentId] = (dataAccum.current[agentId] || 0) + data.length
+      lastDataTime.current[agentId] = now
+
+      // Only mark active if substantial output (not just cursor blinks)
+      if (dataAccum.current[agentId] >= ACTIVE_THRESHOLD) {
+        setAgentStatuses(prev => ({ ...prev, [agentId]: 'active' }))
+      }
     })
 
     const removeExit = window.kagora.onTerminalExit((agentId: string) => {

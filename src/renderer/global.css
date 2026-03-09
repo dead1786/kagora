@@ -116,13 +116,19 @@ body {
   opacity: 0.5;
 }
 
+.agent-dot.idle {
+  opacity: 0.85;
+  box-shadow: 0 0 4px 1px currentColor;
+}
+
 .agent-dot.active {
-  animation: pulse-dot 1.2s ease-in-out infinite;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+  opacity: 1;
 }
 
 @keyframes pulse-dot {
-  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
-  50% { box-shadow: 0 0 8px 3px currentColor; }
+  0%, 100% { box-shadow: 0 0 4px 1px currentColor; }
+  50% { box-shadow: 0 0 12px 5px currentColor; }
 }
 
 /* Color picker popup */
