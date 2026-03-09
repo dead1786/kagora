@@ -83,6 +83,7 @@ export function detectAvailableShells(): ShellOption[] {
 }
 
 const INJECT_IDLE_MS = 2000 // Wait 2s of no user input before injecting
+const INJECT_GAP_MS = 200  // Gap between sequential injections
 
 export class TerminalManager {
   private terminals = new Map<string, ManagedTerminal>()
@@ -90,7 +91,7 @@ export class TerminalManager {
   private exitHandler: ((agentId: string, code: number) => void) | null = null
   private lastInputTime = new Map<string, number>()
   private injectQueues = new Map<string, string[]>()
-  private injectTimers = new Map<string, ReturnType<typeof setInterval>>()
+  private injectDraining = new Set<string>()
 
   onData(handler: (agentId: string, data: string) => void) {
     this.dataHandler = handler
@@ -147,20 +148,10 @@ export class TerminalManager {
     this.terminals.get(agentId)?.process.write(data)
   }
 
-  /** Queue-based inject: waits for idle before writing to avoid interrupting user typing */
+  /** Serialized inject: queues all messages per terminal, drains one at a time with gaps */
   inject(agentId: string, data: string) {
     if (!this.terminals.has(agentId)) return
 
-    const lastInput = this.lastInputTime.get(agentId) || 0
-    const idle = Date.now() - lastInput
-
-    // If idle enough, inject immediately
-    if (idle >= INJECT_IDLE_MS) {
-      this.terminals.get(agentId)?.process.write(data)
-      return
-    }
-
-    // Otherwise queue it
     let queue = this.injectQueues.get(agentId)
     if (!queue) {
       queue = []
@@ -168,27 +159,39 @@ export class TerminalManager {
     }
     queue.push(data)
 
-    // Start flush timer if not running
-    if (!this.injectTimers.has(agentId)) {
-      const timer = setInterval(() => {
-        const last = this.lastInputTime.get(agentId) || 0
-        if (Date.now() - last >= INJECT_IDLE_MS) {
-          const q = this.injectQueues.get(agentId)
-          if (q && q.length > 0) {
-            const term = this.terminals.get(agentId)
-            if (term) {
-              for (const item of q) {
-                term.process.write(item)
-              }
-            }
-            q.length = 0
-          }
-          clearInterval(timer)
-          this.injectTimers.delete(agentId)
-        }
-      }, 500)
-      this.injectTimers.set(agentId, timer)
+    // Start drain loop if not already running
+    if (!this.injectDraining.has(agentId)) {
+      this.drainInjectQueue(agentId)
     }
+  }
+
+  private drainInjectQueue(agentId: string) {
+    this.injectDraining.add(agentId)
+
+    const tick = () => {
+      const queue = this.injectQueues.get(agentId)
+      const term = this.terminals.get(agentId)
+
+      // Nothing left or terminal gone — stop draining
+      if (!queue || queue.length === 0 || !term) {
+        this.injectDraining.delete(agentId)
+        return
+      }
+
+      // Wait for user to stop typing
+      const lastInput = this.lastInputTime.get(agentId) || 0
+      if (Date.now() - lastInput < INJECT_IDLE_MS) {
+        setTimeout(tick, 500)
+        return
+      }
+
+      // Write one message, then wait before next
+      const item = queue.shift()!
+      term.process.write(item)
+      setTimeout(tick, INJECT_GAP_MS)
+    }
+
+    tick()
   }
 
   resize(agentId: string, cols: number, rows: number) {
