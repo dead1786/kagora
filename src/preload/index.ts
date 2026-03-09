@@ -2,8 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('kagora', {
   // Terminal
-  createTerminal: (agentId: string, shell?: string) =>
-    ipcRenderer.invoke('terminal:create', agentId, shell),
+  createTerminal: (agentId: string, shell?: string, adminMode?: boolean) =>
+    ipcRenderer.invoke('terminal:create', agentId, shell, adminMode),
   sendTerminalInput: (agentId: string, data: string) =>
     ipcRenderer.send('terminal:input', agentId, data),
   onTerminalData: (callback: (agentId: string, data: string) => void) => {

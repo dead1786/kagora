@@ -98,10 +98,63 @@ body {
 }
 
 .agent-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: box-shadow 0.3s, background 0.3s;
+  position: relative;
+}
+
+.agent-dot:hover {
+  box-shadow: 0 0 6px currentColor;
+}
+
+.agent-dot.offline {
+  background: var(--text-muted) !important;
+  opacity: 0.5;
+}
+
+.agent-dot.active {
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 8px 3px currentColor; }
+}
+
+/* Color picker popup */
+.color-picker-popup {
+  position: absolute;
+  left: 24px;
+  top: -4px;
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.color-picker-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.color-picker-dot:hover {
+  transform: scale(1.2);
+}
+
+.color-picker-dot.selected {
+  border-color: white;
 }
 
 .agent-name {

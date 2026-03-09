@@ -82,10 +82,15 @@ export function detectAvailableShells(): ShellOption[] {
   return shells
 }
 
+const INJECT_IDLE_MS = 2000 // Wait 2s of no user input before injecting
+
 export class TerminalManager {
   private terminals = new Map<string, ManagedTerminal>()
   private dataHandler: ((agentId: string, data: string) => void) | null = null
   private exitHandler: ((agentId: string, code: number) => void) | null = null
+  private lastInputTime = new Map<string, number>()
+  private injectQueues = new Map<string, string[]>()
+  private injectTimers = new Map<string, ReturnType<typeof setInterval>>()
 
   onData(handler: (agentId: string, data: string) => void) {
     this.dataHandler = handler
@@ -95,7 +100,7 @@ export class TerminalManager {
     this.exitHandler = handler
   }
 
-  create(agentId: string, shell?: string): void {
+  create(agentId: string, shell?: string, adminMode?: boolean): void {
     if (this.terminals.has(agentId)) {
       this.destroy(agentId)
     }
@@ -106,16 +111,20 @@ export class TerminalManager {
       return
     }
 
+    // Admin mode: use gsudo to launch the shell with elevated privileges
+    const spawnFile = adminMode ? 'gsudo' : shellPath
+    const spawnArgs = adminMode ? [shellPath] : []
+
     let proc: pty.IPty
     try {
-      proc = pty.spawn(shellPath, [], {
+      proc = pty.spawn(spawnFile, spawnArgs, {
         name: 'xterm-256color',
         cols: 120,
         rows: 30,
         cwd: os.homedir(),
         env: process.env as Record<string, string>,
       })
-      console.log(`[terminal] PTY spawned for ${agentId}, pid: ${proc.pid}, shell: ${shellPath}`)
+      console.log(`[terminal] PTY spawned for ${agentId}, pid: ${proc.pid}, shell: ${shellPath}${adminMode ? ' (admin)' : ''}`)
     } catch (err) {
       console.error(`[terminal] Failed to spawn PTY for ${agentId}:`, err)
       return
@@ -134,7 +143,52 @@ export class TerminalManager {
   }
 
   write(agentId: string, data: string) {
+    this.lastInputTime.set(agentId, Date.now())
     this.terminals.get(agentId)?.process.write(data)
+  }
+
+  /** Queue-based inject: waits for idle before writing to avoid interrupting user typing */
+  inject(agentId: string, data: string) {
+    if (!this.terminals.has(agentId)) return
+
+    const lastInput = this.lastInputTime.get(agentId) || 0
+    const idle = Date.now() - lastInput
+
+    // If idle enough, inject immediately
+    if (idle >= INJECT_IDLE_MS) {
+      this.terminals.get(agentId)?.process.write(data)
+      return
+    }
+
+    // Otherwise queue it
+    let queue = this.injectQueues.get(agentId)
+    if (!queue) {
+      queue = []
+      this.injectQueues.set(agentId, queue)
+    }
+    queue.push(data)
+
+    // Start flush timer if not running
+    if (!this.injectTimers.has(agentId)) {
+      const timer = setInterval(() => {
+        const last = this.lastInputTime.get(agentId) || 0
+        if (Date.now() - last >= INJECT_IDLE_MS) {
+          const q = this.injectQueues.get(agentId)
+          if (q && q.length > 0) {
+            const term = this.terminals.get(agentId)
+            if (term) {
+              for (const item of q) {
+                term.process.write(item)
+              }
+            }
+            q.length = 0
+          }
+          clearInterval(timer)
+          this.injectTimers.delete(agentId)
+        }
+      }, 500)
+      this.injectTimers.set(agentId, timer)
+    }
   }
 
   resize(agentId: string, cols: number, rows: number) {

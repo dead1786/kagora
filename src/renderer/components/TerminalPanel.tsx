@@ -9,7 +9,9 @@ interface TerminalPanelProps {
   shell?: string
   fontSize?: number
   startupCommand?: string
+  adminMode?: boolean
   onStartupCommandChange?: (agentId: string, cmd: string | null) => void
+  onAdminModeChange?: (agentId: string, adminMode: boolean) => void
 }
 
 const THEME = {
@@ -36,7 +38,7 @@ const THEME = {
   brightWhite: '#f0f6fc',
 }
 
-export default function TerminalPanel({ agentId, isActive, shell, fontSize = 14, startupCommand, onStartupCommandChange }: TerminalPanelProps) {
+export default function TerminalPanel({ agentId, isActive, shell, fontSize = 14, startupCommand, adminMode, onStartupCommandChange, onAdminModeChange }: TerminalPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
@@ -72,6 +74,12 @@ export default function TerminalPanel({ agentId, isActive, shell, fontSize = 14,
     // Clipboard handling
     terminal.attachCustomKeyEventHandler((ev) => {
       if (ev.type !== 'keydown') return true
+
+      // Ctrl+Enter: insert newline (multi-line input, replaces Alt+Enter)
+      if (ev.ctrlKey && ev.key === 'Enter') {
+        window.kagora.sendTerminalInput(agentId, '\n')
+        return false
+      }
 
       // Ctrl+C: copy if selection exists, otherwise let SIGINT through
       if (ev.ctrlKey && !ev.shiftKey && ev.key === 'c') {
@@ -112,7 +120,7 @@ export default function TerminalPanel({ agentId, isActive, shell, fontSize = 14,
     el.addEventListener('contextmenu', handleContextMenu)
 
     // Create PTY in main process
-    window.kagora.createTerminal(agentId, shell)
+    window.kagora.createTerminal(agentId, shell, adminMode)
 
     // Receive PTY output
     const removeDataListener = window.kagora.onTerminalData((id, data) => {
@@ -237,6 +245,22 @@ export default function TerminalPanel({ agentId, isActive, shell, fontSize = 14,
         position: 'absolute', top: 8, right: 12, zIndex: 10,
         display: 'flex', gap: 6,
       }}>
+        <button
+          onClick={() => {
+            const next = !adminMode
+            onAdminModeChange?.(agentId, next)
+            // Restart terminal with new privilege level
+            setExited(false)
+            setRestartCount(c => c + 1)
+          }}
+          title={adminMode ? 'Running as Administrator (click to disable)' : 'Run as Administrator'}
+          style={{
+            ...toolbarBtnStyle(adminMode),
+            ...(adminMode ? { background: 'rgba(210, 120, 0, 0.3)', borderColor: '#ffa657', color: '#ffa657' } : {}),
+          }}
+        >
+          {adminMode ? 'Admin' : 'Admin'}
+        </button>
         <button
           onClick={handleOpenSaveDialog}
           title={startupCommand ? `Startup: ${startupCommand}` : 'Set startup command'}

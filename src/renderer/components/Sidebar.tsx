@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useT } from '../i18n'
 
 interface Agent {
@@ -7,17 +8,28 @@ interface Agent {
   status: 'online' | 'offline'
 }
 
+type AgentActivity = 'offline' | 'idle' | 'active'
+
 interface SidebarProps {
   agents: Agent[]
   activeView: string
   onSelect: (id: string) => void
   onAdd: () => void
   onRemove: (id: string) => void
+  onColorChange?: (agentId: string, color: string) => void
+  agentStatuses?: Record<string, AgentActivity>
   adminName?: string
 }
 
-export default function Sidebar({ agents, activeView, onSelect, onAdd, onRemove, adminName }: SidebarProps) {
+const COLOR_OPTIONS = [
+  '#58a6ff', '#f78166', '#7ee787', '#d2a8ff',
+  '#ff7b72', '#79c0ff', '#ffa657', '#56d364',
+  '#f0883e', '#db61a2', '#3fb950', '#bc8cff',
+]
+
+export default function Sidebar({ agents, activeView, onSelect, onAdd, onRemove, onColorChange, agentStatuses, adminName }: SidebarProps) {
   const t = useT()
+  const [colorPickerFor, setColorPickerFor] = useState<string | null>(null)
 
   return (
     <div className="sidebar">
@@ -45,22 +57,57 @@ export default function Sidebar({ agents, activeView, onSelect, onAdd, onRemove,
 
       <div className="sidebar-header" style={{ marginTop: 8 }}>{t('sidebar.agents')}</div>
 
-      {agents.map(agent => (
-        <div
-          key={agent.id}
-          className={`sidebar-item ${activeView === agent.id ? 'active' : ''}`}
-          onClick={() => onSelect(agent.id)}
-        >
-          <span className="agent-dot" style={{ background: agent.color }} />
-          <span className="agent-name">{agent.name}</span>
-          <button
-            className="remove-btn"
-            onClick={e => { e.stopPropagation(); onRemove(agent.id) }}
+      {agents.map(agent => {
+        const status = agentStatuses?.[agent.id] || 'offline'
+        const dotClass = `agent-dot ${status}`
+
+        return (
+          <div
+            key={agent.id}
+            className={`sidebar-item ${activeView === agent.id ? 'active' : ''}`}
+            onClick={() => onSelect(agent.id)}
+            style={{ position: 'relative' }}
           >
-            x
-          </button>
-        </div>
-      ))}
+            <span
+              className={dotClass}
+              style={{ background: agent.color, color: agent.color }}
+              onClick={e => {
+                e.stopPropagation()
+                setColorPickerFor(colorPickerFor === agent.id ? null : agent.id)
+              }}
+              title={status === 'active' ? 'Working' : status === 'idle' ? 'Ready' : 'Offline'}
+            />
+            <span className="agent-name">{agent.name}</span>
+            {status === 'active' && (
+              <span style={{ fontSize: 10, color: 'var(--success)', marginRight: 4, flexShrink: 0 }}>
+                working
+              </span>
+            )}
+            <button
+              className="remove-btn"
+              onClick={e => { e.stopPropagation(); onRemove(agent.id) }}
+            >
+              x
+            </button>
+
+            {colorPickerFor === agent.id && (
+              <div className="color-picker-popup" onClick={e => e.stopPropagation()}>
+                {COLOR_OPTIONS.map(c => (
+                  <span
+                    key={c}
+                    className={`color-picker-dot ${agent.color === c ? 'selected' : ''}`}
+                    style={{ background: c }}
+                    onClick={() => {
+                      onColorChange?.(agent.id, c)
+                      setColorPickerFor(null)
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
 
       <div className="sidebar-footer">
         <button

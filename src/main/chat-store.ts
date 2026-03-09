@@ -16,6 +16,7 @@ export interface Agent {
   shell?: string
   status: 'online' | 'offline'
   startupCommand?: string
+  adminMode?: boolean
 }
 
 export interface KagoraSettings {

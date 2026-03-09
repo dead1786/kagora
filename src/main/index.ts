@@ -65,9 +65,9 @@ function createWindow() {
 
 function setupIPC() {
   // Terminal — embedded PTY via node-pty
-  ipcMain.handle('terminal:create', (_e, agentId: string, shell?: string) => {
+  ipcMain.handle('terminal:create', (_e, agentId: string, shell?: string, adminMode?: boolean) => {
     const effectiveShell = shell || chatStore.getSettings().defaultShell || undefined
-    terminalManager.create(agentId, effectiveShell)
+    terminalManager.create(agentId, effectiveShell, adminMode)
     return true
   })
 
@@ -103,18 +103,18 @@ function setupIPC() {
     const msg = chatStore.addMessage(from, to, text)
     mainWindow?.webContents.send('chat:message', msg)
 
-    // Bridge: inject group messages into all agent terminals
+    // Bridge: inject group messages into all agent terminals (queued to avoid interrupting typing)
     if (to === 'group') {
       const agents = chatStore.getAgents()
       for (const agent of agents) {
         if (agent.id !== from) {
-          terminalManager.write(agent.id, `[Kagora] ${from}: ${text}\r`)
+          terminalManager.inject(agent.id, `[Kagora] ${from}: ${text}\r`)
         }
       }
     }
     // Bridge: inject DM into target agent terminal
     if (to !== 'group') {
-      terminalManager.write(to, `[Kagora DM] ${from}: ${text}\r`)
+      terminalManager.inject(to, `[Kagora DM] ${from}: ${text}\r`)
     }
 
     return msg
@@ -148,6 +148,8 @@ function setupIPC() {
     const safe: Record<string, unknown> = {}
     if (typeof partial?.startupCommand === 'string') safe.startupCommand = partial.startupCommand.slice(0, 4096)
     if (partial?.startupCommand === null) safe.startupCommand = undefined
+    if (typeof partial?.color === 'string' && /^#[0-9a-fA-F]{3,6}$/.test(partial.color)) safe.color = partial.color
+    if (typeof partial?.adminMode === 'boolean') safe.adminMode = partial.adminMode
     chatStore.updateAgent(id, safe)
     return chatStore.getAgents()
   })
@@ -261,16 +263,16 @@ function startChatAPI() {
           const msg = chatStore.addMessage(from, dest, text)
           mainWindow?.webContents.send('chat:message', msg)
 
-          // Bridge: inject into target terminals
+          // Bridge: inject into target terminals (queued to avoid interrupting typing)
           if (dest === 'group') {
             const agents = chatStore.getAgents()
             for (const agent of agents) {
               if (agent.id !== from) {
-                terminalManager.write(agent.id, `[Kagora] ${from}: ${text}\r`)
+                terminalManager.inject(agent.id, `[Kagora] ${from}: ${text}\r`)
               }
             }
           } else {
-            terminalManager.write(dest, `[Kagora DM] ${from}: ${text}\r`)
+            terminalManager.inject(dest, `[Kagora DM] ${from}: ${text}\r`)
           }
 
           res.writeHead(200, { 'Content-Type': 'application/json' })

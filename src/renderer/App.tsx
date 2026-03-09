@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Sidebar from './components/Sidebar'
 import TerminalPanel from './components/TerminalPanel'
 import ChatPanel from './components/ChatPanel'
@@ -14,6 +14,7 @@ interface Agent {
   shell?: string
   status: 'online' | 'offline'
   startupCommand?: string
+  adminMode?: boolean
 }
 
 interface Settings {
@@ -25,20 +26,61 @@ interface Settings {
   clearChatOnExit: boolean
 }
 
+type AgentActivity = 'offline' | 'idle' | 'active'
+
 const AGENT_COLORS = [
   '#58a6ff', '#f78166', '#7ee787', '#d2a8ff',
   '#ff7b72', '#79c0ff', '#ffa657', '#56d364'
 ]
+
+const ACTIVE_TIMEOUT = 3000 // 3 seconds of no output = idle
 
 export default function App() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [activeView, setActiveView] = useState<string>('group')
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [settings, setSettings] = useState<Settings | null>(null)
+  const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentActivity>>({})
+  const lastDataTime = useRef<Record<string, number>>({})
+  const terminalAlive = useRef<Record<string, boolean>>({})
 
   useEffect(() => {
     window.kagora.getAgents().then(setAgents)
     window.kagora.getSettings().then(setSettings)
+  }, [])
+
+  // Track terminal activity for status indicators
+  useEffect(() => {
+    const removeData = window.kagora.onTerminalData((agentId: string) => {
+      lastDataTime.current[agentId] = Date.now()
+      terminalAlive.current[agentId] = true
+      setAgentStatuses(prev => ({ ...prev, [agentId]: 'active' }))
+    })
+
+    const removeExit = window.kagora.onTerminalExit((agentId: string) => {
+      terminalAlive.current[agentId] = false
+      setAgentStatuses(prev => ({ ...prev, [agentId]: 'offline' }))
+    })
+
+    // Periodically check for idle transition
+    const interval = setInterval(() => {
+      const now = Date.now()
+      setAgentStatuses(prev => {
+        const next = { ...prev }
+        for (const [id, time] of Object.entries(lastDataTime.current)) {
+          if (terminalAlive.current[id] && now - time > ACTIVE_TIMEOUT) {
+            next[id] = 'idle'
+          }
+        }
+        return next
+      })
+    }, 1000)
+
+    return () => {
+      removeData()
+      removeExit()
+      clearInterval(interval)
+    }
   }, [])
 
   // Apply UI font size as CSS variable
@@ -73,6 +115,16 @@ export default function App() {
     setAgents(updated)
   }
 
+  const handleColorChange = async (agentId: string, color: string) => {
+    const updated = await window.kagora.updateAgent(agentId, { color })
+    setAgents(updated)
+  }
+
+  const handleAdminModeChange = async (agentId: string, adminMode: boolean) => {
+    const updated = await window.kagora.updateAgent(agentId, { adminMode })
+    setAgents(updated)
+  }
+
   const language = (settings?.language || 'en') as Language
 
   return (
@@ -86,6 +138,8 @@ export default function App() {
             onSelect={setActiveView}
             onAdd={() => setShowAddDialog(true)}
             onRemove={handleRemoveAgent}
+            onColorChange={handleColorChange}
+            agentStatuses={agentStatuses}
             adminName={settings?.adminName}
           />
           <div className="main-content" style={{ fontSize: 'var(--ui-font-size, 14px)' }}>
@@ -110,7 +164,9 @@ export default function App() {
                   shell={agent.shell || settings?.defaultShell}
                   fontSize={settings?.terminalFontSize}
                   startupCommand={agent.startupCommand}
+                  adminMode={agent.adminMode}
                   onStartupCommandChange={handleStartupCommandChange}
+                  onAdminModeChange={handleAdminModeChange}
                 />
               </div>
             ))}
