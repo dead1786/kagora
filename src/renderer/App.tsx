@@ -113,9 +113,11 @@ export default function App() {
       shell,
       status: 'offline'
     }
-    await window.kagora.addAgent(agent)
-    setAgents(prev => [...prev, agent])
-    setActiveView(agent.id)
+    const ok = await window.kagora.addAgent(agent)
+    if (ok !== false) {
+      setAgents(prev => [...prev, agent])
+      setActiveView(agent.id)
+    }
     setShowAddDialog(false)
   }
 

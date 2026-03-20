@@ -18,8 +18,9 @@ function isValidId(id: unknown): id is string {
 }
 
 function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false
-  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))
+  const ha = crypto.createHash('sha256').update(a).digest()
+  const hb = crypto.createHash('sha256').update(b).digest()
+  return crypto.timingSafeEqual(ha, hb)
 }
 
 let mainWindow: BrowserWindow | null = null
@@ -246,7 +247,9 @@ function startChatAPI() {
     // API token authentication (optional, set KAGORA_API_TOKEN env var)
     if (API_TOKEN) {
       const auth = req.headers.authorization || ''
-      const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+      const urlObj = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`)
+      const token = (auth.startsWith('Bearer ') ? auth.slice(7) : '') ||
+                    urlObj.searchParams.get('token') || ''
       if (!token || !timingSafeEqual(token, API_TOKEN)) {
         res.writeHead(401, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: 'Unauthorized' }))
