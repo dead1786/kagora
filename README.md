@@ -1,70 +1,35 @@
-# Kagora
+<p align="center">
+  <h1 align="center">Kagora</h1>
+  <p align="center"><strong>One app to manage all your AI agents. Terminal, chat, automation — unified.</strong></p>
+</p>
 
-[![CI](https://github.com/dead1786/kagora/actions/workflows/ci.yml/badge.svg)](https://github.com/dead1786/kagora/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](#)
-[![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white)](#)
-[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)](#)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](#)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](#)
-[![GitHub stars](https://img.shields.io/github/stars/dead1786/kagora?style=social)](https://github.com/dead1786/kagora)
-[![GitHub last commit](https://img.shields.io/github/last-commit/dead1786/kagora)](https://github.com/dead1786/kagora/commits)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dead1786/kagora/pulls)
+<p align="center">
+  <a href="https://github.com/dead1786/kagora/actions/workflows/ci.yml"><img src="https://github.com/dead1786/kagora/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Node.js-20+-339933?logo=node.js&logoColor=white" alt="Node 20+"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white" alt="Electron"></a>
+  <a href="#"><img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript"></a>
+</p>
 
-Multi-AI Terminal Platform — run multiple AI agents in independent terminals with built-in chat, scheduling, and external integration.
+---
 
-## Screenshots
+Most AI tools give you a chatbox. Kagora gives you a **command center**.
 
-**Group Chat** — Multiple AI agents collaborating on tasks in real-time
-
-![Group Chat](docs/screenshot-chat.png)
-
-**Claude Terminal** — Each agent runs in its own embedded PTY terminal
-
-![Claude Terminal](docs/screenshot-claude.png)
-
-**Gemini Terminal** — Full shell environment with unrestricted access
-
-![Gemini Terminal](docs/screenshot-gemini.png)
+Each agent gets its own real terminal. They talk to each other. They run on schedules. You control them all from one window — or from your phone via HTTP API. No wrappers, no sandboxes, no toy shells.
 
 ## Features
 
-- **Independent terminals** for each AI agent (full bash/shell environment)
-- **Startup memory** — save startup commands per agent, auto-run on launch
-- **Group chat & DM** between agents and admin
-- **Built-in scheduler** for automated tasks (interval / daily) with description/notes
-- **HTTP API** (port 7777) for external integration (Telegram, LINE Bot, scripts)
-- **Terminal inject** — send commands to any agent's terminal via API
-- **Automations UI** — manage scheduled tasks from the GUI
-- **Settings** — admin name, default shell, font size, auto-clear chat
+- 🖥️ **Multi-terminal** — Every agent runs in its own independent PTY shell. Full bash, full control.
+- 💬 **Group chat + DM** — Agents talk to each other, to you, or in channels. Built-in, not bolted-on.
+- ⏰ **Scheduler** — Interval or daily automations with descriptions. Set it and forget it.
+- 🔌 **HTTP API** — Port 7777. Integrate with Telegram, LINE, scripts, whatever you want.
+- 🧠 **Startup memory** — Each agent remembers its boot commands. Restore context on launch.
+- 🌐 **i18n** — English, 繁體中文, 日本語. More welcome.
+- 🔒 **Admin mode** — You're the operator. Token auth, role control, your rules.
 
-## Prerequisites
+## Quick Start
 
-### All platforms
-- Node.js 18+
-- npm or yarn
-
-### Windows (node-pty native compilation)
-1. **Visual Studio Build Tools** with "Desktop development with C++" workload:
-   ```
-   winget install Microsoft.VisualStudio.2022.BuildTools
-   ```
-   Then open VS Installer → Modify → check "Desktop development with C++".
-
-2. **Python 3** with setuptools:
-   ```
-   pip install setuptools
-   ```
-
-3. The `postinstall` script automatically patches node-pty's Spectre mitigation flags that require VS Enterprise components.
-
-### macOS
-- Xcode Command Line Tools: `xcode-select --install`
-
-### Linux
-- Build essentials: `sudo apt install build-essential python3`
-
-## Install & Run
+Three commands. That's it.
 
 ```bash
 git clone https://github.com/dead1786/kagora.git
@@ -73,37 +38,92 @@ npm install
 npm run dev
 ```
 
-## API
+> **Windows note:** You need VS Build Tools with C++ workload and Python 3 (`pip install setuptools`) for `node-pty` compilation. The postinstall script handles the rest.
+>
+> **macOS:** `xcode-select --install` | **Linux:** `sudo apt install build-essential python3`
 
-All endpoints on `http://127.0.0.1:7777`. See [AGENTS-GUIDE.md](AGENTS-GUIDE.md) for complete documentation.
+## Architecture
 
-### Authentication (optional)
-
-Set `KAGORA_API_TOKEN` environment variable to require Bearer token authentication:
-```bash
-KAGORA_API_TOKEN=my-secret-token npm run dev
 ```
-All API requests must then include `Authorization: Bearer my-secret-token` header or `?token=my-secret-token` query parameter.
+┌──────────────────────────────────────────────────┐
+│                   Kagora App                     │
+│                                                  │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│  │ Agent A  │  │ Agent B  │  │ Agent C  │  ...  │
+│  │ (PTY)    │  │ (PTY)    │  │ (PTY)    │       │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘       │
+│       │              │              │             │
+│       └──────────┬───┘──────────────┘             │
+│                  │                                │
+│         ┌───────┴────────┐                       │
+│         │   Message Bus  │                       │
+│         │  (chat + DM)   │                       │
+│         └───────┬────────┘                       │
+│                 │                                 │
+│    ┌────────────┼────────────┐                    │
+│    │            │            │                    │
+│  ┌─┴──┐   ┌────┴───┐   ┌───┴────┐               │
+│  │ UI │   │Scheduler│   │HTTP API│               │
+│  │React│   │ (cron)  │   │ :7777  │               │
+│  └────┘   └────────┘   └────────┘               │
+└──────────────────────────────────────────────────┘
+        ▲                       ▲
+        │                       │
+     Desktop               External
+     (Electron)         (curl / bots / scripts)
+```
 
-### Endpoints
+## HTTP API
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/chat` | Send chat message (group or DM) |
+Default: `http://127.0.0.1:7777` — see [AGENTS-GUIDE.md](AGENTS-GUIDE.md) for full docs.
+
+**Send a message:**
+
+```bash
+curl -X POST http://127.0.0.1:7777/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"channel": "general", "sender": "operator", "content": "status report"}'
+```
+
+**Inject a command into an agent's terminal:**
+
+```bash
+curl -X POST http://127.0.0.1:7777/api/terminal/inject \
+  -H "Content-Type: application/json" \
+  -d '{"agentId": "claude", "text": "git status\n"}'
+```
+
+**Optional auth:** Set `KAGORA_API_TOKEN=your-secret` and include `Authorization: Bearer your-secret` in requests.
+
+| Method | Endpoint | What it does |
+|--------|----------|--------------|
+| `POST` | `/api/chat` | Send message (group or DM) |
 | `GET` | `/api/chat?channel=xxx` | Read chat history |
-| `POST` | `/api/terminal/inject` | Inject text into agent terminal |
-| `GET` | `/api/agents` | List all registered agents |
-| `GET` | `/api/automations` | List all automations |
+| `POST` | `/api/terminal/inject` | Send text to agent terminal |
+| `GET` | `/api/agents` | List agents |
+| `GET` | `/api/automations` | List scheduled tasks |
 | `POST` | `/api/automations` | Create automation |
 | `PATCH` | `/api/automations/:id` | Update automation |
 | `DELETE` | `/api/automations/:id` | Delete automation |
 
-## Build
+## Screenshots
 
-```bash
-npm run build
-```
+<!-- TODO: Add screenshots -->
+<!-- Recommended: main dashboard, terminal view, group chat, scheduler UI -->
+
+_Coming soon._
+
+## Contributing
+
+PRs welcome. Keep it clean:
+
+1. Fork → branch → commit → PR
+2. Run `npm test` before submitting
+3. TypeScript strict mode. No `any` unless you have a reason.
+4. One feature per PR. Small diffs merge faster.
+
+See [AGENTS-GUIDE.md](AGENTS-GUIDE.md) for API integration details.
 
 ## License
 
-MIT
+[MIT](LICENSE) — do whatever you want.
