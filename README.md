@@ -106,10 +106,75 @@ curl -X POST http://127.0.0.1:7777/api/terminal/inject \
 | `PATCH` | `/api/automations/:id` | Update automation |
 | `DELETE` | `/api/automations/:id` | Delete automation |
 
+## Plugin System
+
+Extend Kagora with plugins. Each plugin is a folder in `plugins/` with a `plugin.json` manifest and a JS entry file.
+
+**Create a plugin:**
+
+```
+plugins/
+  my-plugin/
+    plugin.json
+    index.js
+```
+
+**plugin.json:**
+
+```json
+{
+  "id": "my-plugin",
+  "name": "My Plugin",
+  "version": "1.0.0",
+  "description": "What it does",
+  "main": "index.js"
+}
+```
+
+**index.js:**
+
+```js
+function activate(ctx) {
+  // Register a webhook at GET /api/plugins/my-plugin/health
+  ctx.webhook.register('GET', 'health', (_req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok' }));
+  });
+
+  // React to chat messages
+  ctx.events.on('chat:message', (msg) => {
+    if (msg.text === '!hello') {
+      ctx.chat.send('my-plugin', 'group', 'Hello from plugin!');
+    }
+  });
+
+  // Run something every 60 seconds
+  ctx.scheduler.addInterval('heartbeat', 60000, () => {
+    ctx.log.info('still alive');
+  });
+}
+
+function deactivate() { /* cleanup */ }
+
+module.exports = { activate, deactivate };
+```
+
+**Plugin Context API:**
+
+| API | Methods | Description |
+|-----|---------|-------------|
+| `ctx.chat` | `send(from, to, text)`, `history(channel)`, `agents()` | Chat operations |
+| `ctx.terminal` | `inject(agentId, text)`, `write(agentId, data)`, `has(agentId)` | Terminal control |
+| `ctx.webhook` | `register(method, path, handler)`, `unregister(method, path)` | HTTP endpoints under `/api/plugins/<id>/` |
+| `ctx.scheduler` | `addInterval(name, ms, fn)`, `removeInterval(name)` | Periodic tasks |
+| `ctx.events` | `on(event, handler)`, `off(event, handler)` | Subscribe to `chat:message`, `agent:added`, `agent:removed`, `terminal:data`, `terminal:exit` |
+| `ctx.log` | `info()`, `warn()`, `error()` | Namespaced logging |
+
+See [`examples/plugins/hello-world/`](examples/plugins/hello-world/) for a complete example.
+
 ## Screenshots
 
 <!-- TODO: Add screenshots -->
-<!-- Recommended: main dashboard, terminal view, group chat, scheduler UI -->
 
 _Coming soon._
 

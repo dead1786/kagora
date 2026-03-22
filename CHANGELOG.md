@@ -2,6 +2,18 @@
 
 All notable changes to Kagora will be documented in this file.
 
+## [0.3.0] - 2026-03-22
+
+### Added
+- **Plugin system** — Load JS plugins from `plugins/` directory with manifest-based discovery
+- Plugin Context API: chat, terminal, webhook, scheduler, events, logger
+- Webhook routing: plugins register HTTP endpoints at `/api/plugins/<id>/<path>`
+- Event system: subscribe to `chat:message`, `agent:added`, `agent:removed`, `terminal:data`, `terminal:exit`
+- Interval scheduler for plugins
+- Hello-world example plugin with full API demonstration
+- 9 new plugin system tests (total: 30 tests)
+- Plugin system documentation in README
+
 ## [0.2.1] - 2026-03-20
 
 ### Security
