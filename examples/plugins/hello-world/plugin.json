@@ -1,0 +1,8 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "description": "Example Kagora plugin demonstrating the plugin API",
+  "author": "Kagora Team",
+  "main": "index.js"
+}

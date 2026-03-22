@@ -5,6 +5,7 @@ import http from 'http'
 import { TerminalManager, detectAvailableShells } from './terminal-manager'
 import { ChatStore, type ChatMessage } from './chat-store'
 import { Scheduler } from './scheduler'
+import { PluginLoader } from './plugin-loader'
 
 const API_TOKEN = process.env.KAGORA_API_TOKEN || ''
 const MAX_BODY_SIZE = 64 * 1024 // 64KB
@@ -27,6 +28,7 @@ let mainWindow: BrowserWindow | null = null
 let terminalManager: TerminalManager
 let chatStore: ChatStore
 let scheduler: Scheduler
+let pluginLoader: PluginLoader
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -116,6 +118,7 @@ function setupIPC() {
 
     const msg = chatStore.addMessage(from, to, text)
     mainWindow?.webContents.send('chat:message', msg)
+    pluginLoader?.emit('chat:message', msg)
 
     // Bridge: inject group messages into all agent terminals (queued to avoid interrupting typing)
     if (to === 'group') {
@@ -229,6 +232,21 @@ function setupIPC() {
   ipcMain.handle('automations:remove', (_e, id: string) => {
     chatStore.removeAutomation(id)
     return true
+  })
+
+  // Plugins
+  ipcMain.handle('plugins:list', () => {
+    return pluginLoader.list()
+  })
+
+  ipcMain.handle('plugins:unload', async (_e, pluginId: string) => {
+    return pluginLoader.unload(pluginId)
+  })
+
+  ipcMain.handle('plugins:reload', async () => {
+    await pluginLoader.unloadAll()
+    await pluginLoader.loadAll()
+    return pluginLoader.list()
   })
 }
 
@@ -426,6 +444,18 @@ function startChatAPI() {
       return
     }
 
+    // Plugin list API
+    if (req.method === 'GET' && pathname === '/api/plugins') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(pluginLoader.list()))
+      return
+    }
+
+    // Plugin webhook routing (/api/plugins/<id>/...)
+    if (pathname.startsWith('/api/plugins/')) {
+      if (pluginLoader.handleWebhook(req, res)) return
+    }
+
     res.writeHead(404)
     res.end('Not found')
   })
@@ -435,27 +465,37 @@ function startChatAPI() {
   })
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   terminalManager = new TerminalManager()
   chatStore = new ChatStore(app.getPath('userData'))
 
-  // Wire PTY data/exit events to renderer
+  // Wire PTY data/exit events to renderer + plugin events
   terminalManager.onData((agentId, data) => {
     if (!mainWindow?.isDestroyed()) mainWindow?.webContents.send('terminal:data', agentId, data)
+    pluginLoader?.emit('terminal:data', { agentId, data })
   })
   terminalManager.onExit((agentId, code) => {
     if (!mainWindow?.isDestroyed()) mainWindow?.webContents.send('terminal:exit', agentId, code)
+    pluginLoader?.emit('terminal:exit', { agentId, code })
   })
+
+  // Initialize plugin system
+  const dataDir = join(app.getPath('userData'), 'kagora-data')
+  const pluginsDir = join(app.getPath('userData'), 'plugins')
+  pluginLoader = new PluginLoader(chatStore, terminalManager, pluginsDir)
 
   setupIPC()
   startChatAPI()
   createWindow()
-  const dataDir = join(app.getPath('userData'), 'kagora-data')
   scheduler = new Scheduler(chatStore, terminalManager, () => mainWindow, dataDir)
   scheduler.start()
+
+  // Load plugins after everything is ready
+  await pluginLoader.loadAll()
 })
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await pluginLoader?.unloadAll()
   scheduler?.stop()
   if (chatStore?.shouldClearOnExit()) {
     chatStore.clearMessages()
