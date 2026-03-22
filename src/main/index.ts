@@ -200,6 +200,7 @@ function setupIPC() {
       safe.language = partial.language
     }
     if (typeof partial?.clearChatOnExit === 'boolean') safe.clearChatOnExit = partial.clearChatOnExit
+    if (typeof partial?.darkTheme === 'boolean') safe.darkTheme = partial.darkTheme
     chatStore.updateSettings(safe)
     return chatStore.getSettings()
   })

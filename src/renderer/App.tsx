@@ -24,6 +24,7 @@ interface Settings {
   uiFontSize: number
   language: string
   clearChatOnExit: boolean
+  darkTheme: boolean
 }
 
 type AgentActivity = 'offline' | 'idle' | 'active'
@@ -104,6 +105,16 @@ export default function App() {
       document.documentElement.style.setProperty('--ui-font-size', `${settings.uiFontSize}px`)
     }
   }, [settings?.uiFontSize])
+
+  // Apply light mode
+  useEffect(() => {
+    if (localStorage.getItem('color-scheme') === 'dark') {
+      document.body.classList.remove('light')
+    } else {
+      document.body.classList.add('light')
+    }
+  }, [settings?.darkTheme])
+
 
   const handleAddAgent = async (name: string, shell?: string) => {
     const agent: Agent = {

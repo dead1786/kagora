@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useT, LANGUAGE_OPTIONS, type Language } from '../i18n'
+import Toggle from 'react-toggle'
+import 'react-toggle/style.css'
+import { useMediaQuery } from 'react-responsive'
 
 interface Settings {
   adminName: string
@@ -8,6 +11,7 @@ interface Settings {
   uiFontSize: number
   language: string
   clearChatOnExit: boolean
+  darkTheme: boolean
 }
 
 interface SettingsPanelProps {
@@ -17,11 +21,31 @@ interface SettingsPanelProps {
 export default function SettingsPanel({ onSettingsChange }: SettingsPanelProps) {
   const [settings, setSettings] = useState<Settings | null>(null)
   const [saved, setSaved] = useState(false)
+  const savedDarkTheme = localStorage.getItem('color-scheme') === 'dark'
+  const [darkThemeEnabled, setDarkThemeEnabled] = useState(savedDarkTheme)
   const t = useT()
 
   useEffect(() => {
     window.kagora.getSettings().then(setSettings)
   }, [])
+
+  useEffect(() => {
+    if (darkThemeEnabled) {
+      localStorage.setItem('color-scheme', 'dark')
+      setSettings({ ...settings, darkTheme: true })
+    } else {
+      localStorage.setItem('color-scheme', 'light')
+      setSettings({ ...settings, darkTheme: false })
+    }
+  }, [darkThemeEnabled])
+
+  const systemPrefersDark = useMediaQuery(
+    {
+      query: "(prefers-color-scheme: dark)",
+    },
+    undefined,
+    (isSystemDark) => setDarkThemeEnabled(isSystemDark)
+  );
 
   const handleSave = async () => {
     if (!settings) return
@@ -72,6 +96,15 @@ export default function SettingsPanel({ onSettingsChange }: SettingsPanelProps) 
               />
               <span className="settings-range-value">{settings.uiFontSize}px</span>
             </div>
+          </label>
+          <label className='settings-field'>
+            <span>{t('settings.theme')}</span>
+            <Toggle
+              checked={darkThemeEnabled}
+              icons={false}
+              onChange={({ target }) => setDarkThemeEnabled(target.checked)}
+              aria-label="Dark mode toggle"
+            />
           </label>
           <label className="settings-field">
             <span>{t('settings.language')}</span>
