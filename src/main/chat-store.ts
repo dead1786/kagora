@@ -25,6 +25,7 @@ export interface KagoraSettings {
   terminalFontSize: number
   uiFontSize: number
   language: string
+  theme: 'dark' | 'light'
   clearChatOnExit: boolean
 }
 
@@ -34,6 +35,7 @@ const DEFAULT_SETTINGS: KagoraSettings = {
   terminalFontSize: 14,
   uiFontSize: 14,
   language: 'en',
+  theme: 'dark',
   clearChatOnExit: false
 }
 

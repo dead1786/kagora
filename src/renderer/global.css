@@ -18,6 +18,20 @@
   --success: #3fb950;
 }
 
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f8fa;
+  --bg-tertiary: #eaeef2;
+  --border: #d0d7de;
+  --text-primary: #1f2328;
+  --text-secondary: #656d76;
+  --text-muted: #8c959f;
+  --accent: #0969da;
+  --accent-hover: #0550ae;
+  --danger: #cf222e;
+  --success: #1a7f37;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: var(--bg-primary);
@@ -240,7 +254,7 @@ body {
 .terminal-container {
   flex: 1;
   padding: 4px;
-  background: #0d1117;
+  background: var(--bg-primary);
 }
 
 /* Chat */

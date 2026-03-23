@@ -7,6 +7,7 @@ interface Settings {
   terminalFontSize: number
   uiFontSize: number
   language: string
+  theme: 'dark' | 'light'
   clearChatOnExit: boolean
 }
 
@@ -93,6 +94,16 @@ export default function SettingsPanel({ onSettingsChange }: SettingsPanelProps) 
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
+          </label>
+          <label className="settings-field toggle">
+            <span>{t('settings.theme')}</span>
+            <button
+              className={`toggle-btn ${settings.theme === 'light' ? 'on' : ''}`}
+              onClick={() => setSettings({ ...settings, theme: settings.theme === 'light' ? 'dark' : 'light' })}
+              title={settings.theme === 'light' ? 'Light' : 'Dark'}
+            >
+              <span className="toggle-knob" />
+            </button>
           </label>
         </div>
 

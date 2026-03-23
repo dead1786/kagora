@@ -199,6 +199,9 @@ function setupIPC() {
     if (typeof partial?.language === 'string' && ['en', 'zh-TW', 'zh-CN', 'ja', 'ko'].includes(partial.language)) {
       safe.language = partial.language
     }
+    if (typeof partial?.theme === 'string' && ['dark', 'light'].includes(partial.theme)) {
+      safe.theme = partial.theme
+    }
     if (typeof partial?.clearChatOnExit === 'boolean') safe.clearChatOnExit = partial.clearChatOnExit
     chatStore.updateSettings(safe)
     return chatStore.getSettings()

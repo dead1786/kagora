@@ -23,6 +23,7 @@ interface Settings {
   terminalFontSize: number
   uiFontSize: number
   language: string
+  theme: 'dark' | 'light'
   clearChatOnExit: boolean
 }
 
@@ -104,6 +105,12 @@ export default function App() {
       document.documentElement.style.setProperty('--ui-font-size', `${settings.uiFontSize}px`)
     }
   }, [settings?.uiFontSize])
+
+  // Apply theme
+  useEffect(() => {
+    const theme = settings?.theme || 'dark'
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [settings?.theme])
 
   const handleAddAgent = async (name: string, shell?: string) => {
     const agent: Agent = {
@@ -239,8 +246,8 @@ function AddAgentDialog({ onAdd, onClose }: {
           onChange={e => setShell(e.target.value)}
           style={{
             padding: '8px 12px', borderRadius: 6,
-            background: '#0d1117', border: '1px solid #30363d',
-            color: '#e6edf3', fontSize: 14, width: '100%',
+            background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
+            color: 'var(--text-primary)', fontSize: 14, width: '100%',
             cursor: 'pointer',
           }}
         >
