@@ -1,0 +1,8 @@
+{
+  "id": "system-monitor",
+  "name": "System Monitor Dashboard",
+  "version": "1.0.0",
+  "description": "Real-time system monitoring dashboard with CPU, memory, uptime, and agent status. Access at /api/plugins/system-monitor/dashboard",
+  "author": "dead1786",
+  "main": "index.js"
+}
