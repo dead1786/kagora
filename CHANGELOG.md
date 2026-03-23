@@ -2,6 +2,19 @@
 
 All notable changes to Kagora will be documented in this file.
 
+## [0.4.0] - 2026-03-23
+
+### Added
+- **System Monitor Dashboard plugin** — Real-time system monitoring with CPU, memory, uptime, and agent status
+  - HTML dashboard at `/api/plugins/system-monitor/dashboard`
+  - JSON API: `/api/plugins/system-monitor/status` and `/history`
+  - Canvas-based CPU & memory trend chart (60 data points)
+  - Auto-refresh every 10 seconds, 1-hour history retention
+- Dark/light theme toggle (closes #3)
+
+### Fixed
+- Korean (ko) translation was already included in v0.3.0 (closes #1)
+
 ## [0.3.0] - 2026-03-22
 
 ### Added
