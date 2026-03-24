@@ -138,10 +138,10 @@ export class Scheduler {
       if (win && !win.isDestroyed()) {
         win.webContents.send('chat:message', msg)
       }
-      this.terminalManager.write(auto.target, `[Kagora] scheduler: ${text}\r`)
+      this.terminalManager.inject(auto.target, `[Kagora] scheduler: ${text}\r`)
     } else {
       // Direct terminal inject
-      this.terminalManager.write(auto.target, `${text}\r`)
+      this.terminalManager.inject(auto.target, `${text}\r`)
     }
 
     console.log(`[kagora-scheduler] Triggered "${auto.name}" -> ${auto.target}`)
