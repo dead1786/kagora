@@ -1,5 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
-import { useT } from '../i18n'
+import { useState, useEffect, useRef, useContext } from 'react'
+import { useT, LanguageContext, type Language } from '../i18n'
+
+const LOCALE_MAP: Record<Language, string> = {
+  'en': 'en-US',
+  'zh-TW': 'zh-TW',
+  'zh-CN': 'zh-CN',
+  'ja': 'ja-JP',
+  'ko': 'ko-KR',
+}
 
 interface ChatMessage {
   id: string
@@ -31,6 +39,8 @@ export default function ChatPanel({ channel, adminName }: ChatPanelProps) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const t = useT()
+  const language = useContext(LanguageContext)
+  const locale = LOCALE_MAP[language] || 'en-US'
 
   useEffect(() => {
     window.kagora.getChatHistory(channel).then(setMessages)
@@ -78,7 +88,7 @@ export default function ChatPanel({ channel, adminName }: ChatPanelProps) {
               <div className="chat-sender">
                 {msg.from}
                 <span className="chat-time">
-                  {new Date(msg.time).toLocaleTimeString('zh-TW', {
+                  {new Date(msg.time).toLocaleTimeString(locale, {
                     hour: '2-digit',
                     minute: '2-digit'
                   })}

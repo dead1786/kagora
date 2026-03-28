@@ -2,6 +2,15 @@
 
 All notable changes to Kagora will be documented in this file.
 
+## [0.4.1] - 2026-03-27
+
+### Fixed
+- **i18n: chat timestamps now respect language setting** — Previously hardcoded to `zh-TW` locale in ChatPanel and DMLogPanel; now uses the correct locale based on the user's selected language (en/zh-TW/zh-CN/ja/ko)
+- **README: fix incorrect API field names** — `POST /api/chat` example used wrong fields (`channel`/`sender`/`content`); corrected to `from`/`to`/`text`
+
+### Security
+- Patch `brace-expansion` and `picomatch` vulnerabilities via `npm audit fix` (17 -> 15 remaining, rest require major dep upgrades)
+
 ## [0.4.0] - 2026-03-23
 
 ### Added

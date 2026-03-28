@@ -82,7 +82,7 @@ Default: `http://127.0.0.1:7777` — see [AGENTS-GUIDE.md](AGENTS-GUIDE.md) for 
 ```bash
 curl -X POST http://127.0.0.1:7777/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"channel": "general", "sender": "operator", "content": "status report"}'
+  -d '{"from": "operator", "to": "group", "text": "status report"}'
 ```
 
 **Inject a command into an agent's terminal:**

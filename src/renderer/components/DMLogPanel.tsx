@@ -1,5 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
-import { useT } from '../i18n'
+import { useState, useEffect, useRef, useContext } from 'react'
+import { useT, LanguageContext, type Language } from '../i18n'
+
+const LOCALE_MAP: Record<Language, string> = {
+  'en': 'en-US',
+  'zh-TW': 'zh-TW',
+  'zh-CN': 'zh-CN',
+  'ja': 'ja-JP',
+  'ko': 'ko-KR',
+}
 
 interface ChatMessage {
   id: string
@@ -30,6 +38,8 @@ export default function DMLogPanel() {
   const [filter, setFilter] = useState<string>('all')
   const messagesRef = useRef<HTMLDivElement>(null)
   const t = useT()
+  const language = useContext(LanguageContext)
+  const locale = LOCALE_MAP[language] || 'en-US'
 
   useEffect(() => {
     window.kagora.getChatHistory('dm-log').then(setMessages)
@@ -91,7 +101,7 @@ export default function DMLogPanel() {
                 <span className="dm-direction">{'>'}</span>
                 <span style={{ color: getSenderColor(msg.to) }}>{msg.to}</span>
                 <span className="chat-time">
-                  {new Date(msg.time).toLocaleTimeString('zh-TW', {
+                  {new Date(msg.time).toLocaleTimeString(locale, {
                     hour: '2-digit',
                     minute: '2-digit'
                   })}
