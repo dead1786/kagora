@@ -2,6 +2,16 @@
 
 All notable changes to Kagora will be documented in this file.
 
+## [0.4.2] - 2026-03-31
+
+### Added
+- **Weekly schedule support** — New `weekly:DAY:HH:MM` format (e.g. `weekly:MON:09:00`) for automations that run once per week on a specific day
+- **Scheduler unit tests** — 21 tests covering `parseSchedule` and `shouldRun` for interval, daily, weekly, and cron formats
+
+### Changed
+- Refactored scheduler internals: `parseSchedule` and `shouldRun` are now exported functions for better testability
+- Added input validation for daily/weekly schedules (reject invalid hours > 23 or minutes > 59)
+
 ## [0.4.1] - 2026-03-27
 
 ### Fixed

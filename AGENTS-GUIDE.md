@@ -166,6 +166,8 @@ Kagora 內建排程器，每 30 秒檢查一次。AI 可以自行建立、管理
 | `interval:分鐘數` | `interval:30` | 每 30 分鐘觸發 |
 | `daily:HH:MM` | `daily:08:00` | 每天 08:00 觸發 |
 | `daily:HH:MM` | `daily:23:30` | 每天 23:30 觸發 |
+| `weekly:DAY:HH:MM` | `weekly:MON:09:00` | 每週一 09:00 觸發 |
+| `weekly:DAY:HH:MM` | `weekly:FRI:17:30` | 每週五 17:30 觸發 |
 
 ### 建立定時任務
 ```bash
