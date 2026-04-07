@@ -51,6 +51,19 @@ describe('Scheduler', () => {
       expect(parseSchedule('weekly:MON:12:61')).toBeNull()
     })
 
+    it('should parse monthly format', () => {
+      expect(parseSchedule('monthly:01:08:00')).toEqual({ type: 'monthly', dayOfMonth: 1, hour: 8, minute: 0 })
+      expect(parseSchedule('monthly:15:12:30')).toEqual({ type: 'monthly', dayOfMonth: 15, hour: 12, minute: 30 })
+      expect(parseSchedule('monthly:31:23:59')).toEqual({ type: 'monthly', dayOfMonth: 31, hour: 23, minute: 59 })
+    })
+
+    it('should reject invalid monthly values', () => {
+      expect(parseSchedule('monthly:0:08:00')).toBeNull()   // day 0 invalid
+      expect(parseSchedule('monthly:32:08:00')).toBeNull()  // day 32 invalid
+      expect(parseSchedule('monthly:01:24:00')).toBeNull()  // hour 24 invalid
+      expect(parseSchedule('monthly:01:08:60')).toBeNull()  // minute 60 invalid
+    })
+
     it('should parse simplified cron format', () => {
       const result = parseSchedule('cron:30 8 * * *')
       expect(result).toEqual({ type: 'daily', hour: 8, minute: 30 })
@@ -174,6 +187,37 @@ describe('Scheduler', () => {
 
         // Only 30s since last run
         expect(shouldRun(friAt17, 30_000, friday.getTime())).toBe(false)
+      })
+    })
+
+    describe('monthly schedules', () => {
+      it('should trigger on matching day-of-month, hour, and minute', () => {
+        const firstAt8: ParsedSchedule = { type: 'monthly', dayOfMonth: 1, hour: 8, minute: 0 }
+        const firstOfMonth = new Date(2026, 0, 1, 8, 0, 15) // Jan 1 08:00:15
+
+        expect(shouldRun(firstAt8, 120_000, firstOfMonth.getTime())).toBe(true)
+      })
+
+      it('should not trigger on wrong day of month', () => {
+        const firstAt8: ParsedSchedule = { type: 'monthly', dayOfMonth: 1, hour: 8, minute: 0 }
+        const secondOfMonth = new Date(2026, 0, 2, 8, 0, 0) // Jan 2
+
+        expect(shouldRun(firstAt8, 120_000, secondOfMonth.getTime())).toBe(false)
+      })
+
+      it('should not trigger on right day but wrong time', () => {
+        const fifteenthAt12: ParsedSchedule = { type: 'monthly', dayOfMonth: 15, hour: 12, minute: 0 }
+        const fifteenth = new Date(2026, 0, 15, 13, 0, 0) // Jan 15 but at 13:00
+
+        expect(shouldRun(fifteenthAt12, 120_000, fifteenth.getTime())).toBe(false)
+      })
+
+      it('should not re-trigger within 60s window', () => {
+        const firstAt8: ParsedSchedule = { type: 'monthly', dayOfMonth: 1, hour: 8, minute: 0 }
+        const firstOfMonth = new Date(2026, 3, 1, 8, 0, 20) // Apr 1 08:00:20
+
+        // Only 30s since last run
+        expect(shouldRun(firstAt8, 30_000, firstOfMonth.getTime())).toBe(false)
       })
     })
   })

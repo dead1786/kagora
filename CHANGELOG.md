@@ -2,6 +2,15 @@
 
 All notable changes to Kagora will be documented in this file.
 
+## [0.4.3] - 2026-04-08
+
+### Added
+- **Monthly schedule support** — New `monthly:DD:HH:MM` format (e.g. `monthly:01:08:00`) for automations that run once per month on a specific day
+- **Monthly scheduler tests** — 4 tests covering `parseSchedule` and `shouldRun` for the new monthly type
+
+### Security
+- Updated `package-lock.json` dependencies via `npm audit fix` (reduces vulnerabilities in dev deps)
+
 ## [0.4.2] - 2026-03-31
 
 ### Added

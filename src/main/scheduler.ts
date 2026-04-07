@@ -28,7 +28,14 @@ export interface WeeklySchedule {
   minute: number
 }
 
-export type ParsedSchedule = IntervalSchedule | DailySchedule | WeeklySchedule
+export interface MonthlySchedule {
+  type: 'monthly'
+  dayOfMonth: number // 1-31
+  hour: number
+  minute: number
+}
+
+export type ParsedSchedule = IntervalSchedule | DailySchedule | WeeklySchedule | MonthlySchedule
 
 const DAY_NAMES: Record<string, number> = {
   sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6
@@ -70,6 +77,16 @@ export function parseSchedule(schedule: string): ParsedSchedule | null {
     return { type: 'weekly', dayOfWeek, hour, minute }
   }
 
+  // Format: "monthly:DD:HH:MM" e.g. "monthly:01:08:00" = 1st of each month at 8am
+  const monthlyMatch = schedule.match(/^monthly:(\d{1,2}):(\d{1,2}):(\d{2})$/i)
+  if (monthlyMatch) {
+    const day = parseInt(monthlyMatch[1])
+    const hour = parseInt(monthlyMatch[2])
+    const minute = parseInt(monthlyMatch[3])
+    if (day < 1 || day > 31 || hour > 23 || minute > 59) return null
+    return { type: 'monthly', dayOfMonth: day, hour, minute }
+  }
+
   // Format: "cron:MIN HOUR * * *" (simplified: only min + hour)
   const cronMatch = schedule.match(/^cron:(\d+)\s+(\d+)\s/)
   if (cronMatch) {
@@ -108,6 +125,19 @@ export function shouldRun(parsed: ParsedSchedule, elapsedMs: number, nowMs: numb
 
     // Check if current day+time matches
     if (day === parsed.dayOfWeek && h === parsed.hour && m === parsed.minute) {
+      // Only run once per window (don't re-trigger within 60s)
+      return elapsedMs >= 60_000
+    }
+  }
+
+  if (parsed.type === 'monthly') {
+    const now = new Date(nowMs)
+    const d = now.getDate()
+    const h = now.getHours()
+    const m = now.getMinutes()
+
+    // Check if current day-of-month + time matches
+    if (d === parsed.dayOfMonth && h === parsed.hour && m === parsed.minute) {
       // Only run once per window (don't re-trigger within 60s)
       return elapsedMs >= 60_000
     }
