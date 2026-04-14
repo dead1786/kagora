@@ -132,7 +132,7 @@ export class ChatStore {
     }
     this.messages.push(msg)
     // Cap at 5000 messages, trim oldest 500 when exceeded
-    if (this.messages.length > 5000) {
+    if (this.messages.length >= 5000) {
       this.messages = this.messages.slice(-4500)
     }
     this.save()

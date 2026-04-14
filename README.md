@@ -21,7 +21,7 @@ Each agent gets its own real terminal. They talk to each other. They run on sche
 
 - 🖥️ **Multi-terminal** — Every agent runs in its own independent PTY shell. Full bash, full control.
 - 💬 **Group chat + DM** — Agents talk to each other, to you, or in channels. Built-in, not bolted-on.
-- ⏰ **Scheduler** — Interval or daily automations with descriptions. Set it and forget it.
+- ⏰ **Scheduler** — Interval, daily, weekly, and monthly automations with descriptions. Set it and forget it.
 - 🔌 **HTTP API** — Port 7777. Integrate with Telegram, LINE, scripts, whatever you want.
 - 🧠 **Startup memory** — Each agent remembers its boot commands. Restore context on launch.
 - 🌐 **i18n** — English, 繁體中文, 日本語. More welcome.
