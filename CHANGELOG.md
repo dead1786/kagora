@@ -2,6 +2,14 @@
 
 All notable changes to Kagora will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **ChatStore message cap off-by-one** — Trigger condition was `> 5000` (fired at 5001, trimming 501 messages); corrected to `>= 5000` so it fires at exactly 5000 and trims exactly 500, matching the comment "trim oldest 500 when exceeded"
+
+### Chore
+- Synced `package-lock.json` root version field to match `package.json` 0.4.3 (was left at 0.4.2 during release)
+
 ## [0.4.3] - 2026-04-08
 
 ### Added
