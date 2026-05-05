@@ -206,6 +206,7 @@ export class Scheduler {
   private tick() {
     const now = Date.now()
     const automations = this.chatStore.getAutomations()
+    let dirty = false
 
     for (const auto of automations) {
       if (!auto.enabled) continue
@@ -219,9 +220,11 @@ export class Scheduler {
       if (shouldRun(parsed, elapsed, now)) {
         this.execute(auto)
         this.state.set(auto.id, { lastRun: now })
-        this.saveState()
+        dirty = true
       }
     }
+
+    if (dirty) this.saveState()
   }
 
   private execute(auto: Automation) {
