@@ -92,12 +92,15 @@ export class ChatStore {
     }
   }
 
-  private save() {
+  private saveMessages() {
     writeFileSync(
       join(this.dataDir, 'messages.json'),
       JSON.stringify(this.messages, null, 2),
       'utf-8'
     )
+  }
+
+  private saveAgents() {
     writeFileSync(
       join(this.dataDir, 'agents.json'),
       JSON.stringify(this.agents, null, 2),
@@ -135,7 +138,7 @@ export class ChatStore {
     if (this.messages.length >= 5000) {
       this.messages = this.messages.slice(-4500)
     }
-    this.save()
+    this.saveMessages()
     return msg
   }
 
@@ -157,25 +160,25 @@ export class ChatStore {
 
   addAgent(agent: Agent) {
     this.agents.push(agent)
-    this.save()
+    this.saveAgents()
   }
 
   updateAgent(id: string, partial: Partial<Agent>) {
     const idx = this.agents.findIndex(a => a.id === id)
     if (idx >= 0) {
       this.agents[idx] = { ...this.agents[idx], ...partial }
-      this.save()
+      this.saveAgents()
     }
   }
 
   removeAgent(id: string) {
     this.agents = this.agents.filter(a => a.id !== id)
-    this.save()
+    this.saveAgents()
   }
 
   clearMessages() {
     this.messages = []
-    this.save()
+    this.saveMessages()
   }
 
   shouldClearOnExit(): boolean {

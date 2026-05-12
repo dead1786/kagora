@@ -7,8 +7,12 @@ All notable changes to Kagora will be documented in this file.
 ### Fixed
 - **ChatStore message cap off-by-one** — Trigger condition was `> 5000` (fired at 5001, trimming 501 messages); corrected to `>= 5000` so it fires at exactly 5000 and trims exactly 500, matching the comment "trim oldest 500 when exceeded"
 
+### Performance
+- **ChatStore: separate message and agent persistence** — Split the combined `save()` method into `saveMessages()` and `saveAgents()` so that `addMessage()` and `clearMessages()` no longer redundantly rewrite `agents.json` on every message. Agent mutations still flush only `agents.json`. Reduces disk I/O significantly in high-frequency chat scenarios (e.g. multi-AI group channels).
+
 ### Chore
 - Synced `package-lock.json` root version field to match `package.json` 0.4.3 (was left at 0.4.2 during release)
+- Patched `ip-address` XSS vulnerability via `npm audit fix` (non-breaking)
 
 ## [0.4.3] - 2026-04-08
 
