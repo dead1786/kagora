@@ -47,7 +47,8 @@ const DAY_NAMES: Record<string, number> = {
  *   - "interval:MINUTES"         e.g. "interval:180" = every 3 hours
  *   - "daily:HH:MM"             e.g. "daily:08:00"
  *   - "weekly:DAY:HH:MM"        e.g. "weekly:MON:09:00"
- *   - "cron:MIN HOUR * * *"     simplified cron (min + hour only)
+ *   - "cron:MIN HOUR * * *"     simplified cron daily (e.g. "cron:30 8 * * *" = daily 08:30)
+ *   - "cron:MIN HOUR * * DOW"  simplified cron weekly (e.g. "cron:0 9 * * 1" = Mon 09:00, 0=Sun..6=Sat)
  */
 export function parseSchedule(schedule: string): ParsedSchedule | null {
   // Format: "interval:MINUTES" e.g. "interval:180" = every 3 hours
@@ -87,10 +88,21 @@ export function parseSchedule(schedule: string): ParsedSchedule | null {
     return { type: 'monthly', dayOfMonth: day, hour, minute }
   }
 
-  // Format: "cron:MIN HOUR * * *" (simplified: only min + hour)
-  const cronMatch = schedule.match(/^cron:(\d+)\s+(\d+)\s/)
+  // Format: "cron:MIN HOUR * * DOW" (simplified: min, hour, and optional weekday 0-6)
+  // "cron:30 8 * * *"  => daily at 08:30
+  // "cron:0 9 * * 1"   => weekly on Monday at 09:00 (0=Sun, 1=Mon, ..., 6=Sat)
+  const cronMatch = schedule.match(/^cron:(\d+)\s+(\d+)\s+\*\s+\*\s+(\d|\*)$/)
   if (cronMatch) {
-    return { type: 'daily', hour: parseInt(cronMatch[2]), minute: parseInt(cronMatch[1]) }
+    const minute = parseInt(cronMatch[1])
+    const hour = parseInt(cronMatch[2])
+    const dowField = cronMatch[3]
+    if (minute > 59 || hour > 23) return null
+    if (dowField !== '*') {
+      const dow = parseInt(dowField)
+      if (dow < 0 || dow > 6) return null
+      return { type: 'weekly', dayOfWeek: dow, hour, minute }
+    }
+    return { type: 'daily', hour, minute }
   }
 
   return null

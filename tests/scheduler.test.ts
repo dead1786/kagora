@@ -64,9 +64,23 @@ describe('Scheduler', () => {
       expect(parseSchedule('monthly:01:08:60')).toBeNull()  // minute 60 invalid
     })
 
-    it('should parse simplified cron format', () => {
+    it('should parse simplified cron format (daily)', () => {
       const result = parseSchedule('cron:30 8 * * *')
       expect(result).toEqual({ type: 'daily', hour: 8, minute: 30 })
+    })
+
+    it('should parse cron format with weekday as weekly schedule', () => {
+      // 0=Sun, 1=Mon, ..., 6=Sat
+      expect(parseSchedule('cron:0 9 * * 1')).toEqual({ type: 'weekly', dayOfWeek: 1, hour: 9, minute: 0 })
+      expect(parseSchedule('cron:30 17 * * 5')).toEqual({ type: 'weekly', dayOfWeek: 5, hour: 17, minute: 30 })
+      expect(parseSchedule('cron:0 0 * * 0')).toEqual({ type: 'weekly', dayOfWeek: 0, hour: 0, minute: 0 })
+      expect(parseSchedule('cron:59 23 * * 6')).toEqual({ type: 'weekly', dayOfWeek: 6, hour: 23, minute: 59 })
+    })
+
+    it('should reject invalid cron values', () => {
+      expect(parseSchedule('cron:60 8 * * *')).toBeNull()   // minute 60 invalid
+      expect(parseSchedule('cron:0 24 * * *')).toBeNull()   // hour 24 invalid
+      expect(parseSchedule('cron:0 9 * * 7')).toBeNull()    // dow 7 invalid
     })
 
     it('should return null for unknown formats', () => {
