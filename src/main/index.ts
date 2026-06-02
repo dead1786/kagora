@@ -228,7 +228,15 @@ function setupIPC() {
   })
 
   ipcMain.handle('automations:update', (_e, id: string, partial: any) => {
-    chatStore.updateAutomation(id, partial)
+    const safe: Record<string, unknown> = {}
+    if (typeof partial?.name === 'string') safe.name = partial.name.slice(0, 128)
+    if (typeof partial?.description === 'string') safe.description = partial.description.slice(0, 512)
+    if (typeof partial?.script === 'string') safe.script = partial.script.slice(0, 4096)
+    if (typeof partial?.schedule === 'string') safe.schedule = partial.schedule.slice(0, 64)
+    if (partial?.target && isValidId(partial.target)) safe.target = partial.target
+    if (partial?.method === 'chat' || partial?.method === 'inject') safe.method = partial.method
+    if (typeof partial?.enabled === 'boolean') safe.enabled = partial.enabled
+    chatStore.updateAutomation(id, safe)
     return chatStore.getAutomations()
   })
 
@@ -425,10 +433,18 @@ function startChatAPI() {
         if (overflow) { res.writeHead(413); res.end('Body too large'); return }
         try {
           const partial = JSON.parse(body)
-          if (partial.target && !isValidId(partial.target)) { res.writeHead(400); res.end('Invalid target'); return }
-          if (partial.script && typeof partial.script === 'string') partial.script = partial.script.slice(0, 4096)
-          if (partial.name && typeof partial.name === 'string') partial.name = partial.name.slice(0, 128)
-          chatStore.updateAutomation(id, partial)
+          const safe: Record<string, unknown> = {}
+          if (partial.target !== undefined) {
+            if (!isValidId(partial.target)) { res.writeHead(400); res.end('Invalid target'); return }
+            safe.target = partial.target
+          }
+          if (typeof partial.script === 'string') safe.script = partial.script.slice(0, 4096)
+          if (typeof partial.name === 'string') safe.name = partial.name.slice(0, 128)
+          if (typeof partial.description === 'string') safe.description = partial.description.slice(0, 512)
+          if (typeof partial.schedule === 'string') safe.schedule = partial.schedule.slice(0, 64)
+          if (partial.method === 'chat' || partial.method === 'inject') safe.method = partial.method
+          if (typeof partial.enabled === 'boolean') safe.enabled = partial.enabled
+          chatStore.updateAutomation(id, safe)
           res.writeHead(200, { 'Content-Type': 'application/json' })
           res.end(JSON.stringify({ ok: true }))
         } catch {

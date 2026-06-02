@@ -5,6 +5,7 @@ All notable changes to Kagora will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **Automation PATCH / IPC update missing field sanitization** — `PATCH /api/automations/:id` and the IPC `automations:update` handler passed unsanitized `schedule` and `description` fields directly to the store. Both paths now apply the same length caps and allowlisting used by the POST handler (`schedule` ≤ 64, `description` ≤ 512, `method` restricted to `chat`/`inject`, `target` validated via `isValidId`). Arbitrary data can no longer be written to `automations.json` via the update path.
 - **ChatStore message cap off-by-one** — Trigger condition was `> 5000` (fired at 5001, trimming 501 messages); corrected to `>= 5000` so it fires at exactly 5000 and trims exactly 500, matching the comment "trim oldest 500 when exceeded"
 
 ### Performance
