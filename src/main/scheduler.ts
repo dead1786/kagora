@@ -148,8 +148,14 @@ export function shouldRun(parsed: ParsedSchedule, elapsedMs: number, nowMs: numb
     const h = now.getHours()
     const m = now.getMinutes()
 
+    // Clamp target day to the last day of the current month, so schedules
+    // like "monthly:31" still fire in shorter months (Feb, Apr, Jun, Sep, Nov)
+    // instead of silently never running that month.
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    const targetDay = Math.min(parsed.dayOfMonth, lastDayOfMonth)
+
     // Check if current day-of-month + time matches
-    if (d === parsed.dayOfMonth && h === parsed.hour && m === parsed.minute) {
+    if (d === targetDay && h === parsed.hour && m === parsed.minute) {
       // Only run once per window (don't re-trigger within 60s)
       return elapsedMs >= 60_000
     }

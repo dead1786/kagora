@@ -233,6 +233,42 @@ describe('Scheduler', () => {
         // Only 30s since last run
         expect(shouldRun(firstAt8, 30_000, firstOfMonth.getTime())).toBe(false)
       })
+
+      it('should clamp day 31 to the last day of a 30-day month', () => {
+        const last31At8: ParsedSchedule = { type: 'monthly', dayOfMonth: 31, hour: 8, minute: 0 }
+        const apr30 = new Date(2026, 3, 30, 8, 0, 15) // Apr 30 (April has only 30 days)
+
+        expect(shouldRun(last31At8, 120_000, apr30.getTime())).toBe(true)
+      })
+
+      it('should clamp day 31 to Feb 28 in a non-leap year', () => {
+        const last31At8: ParsedSchedule = { type: 'monthly', dayOfMonth: 31, hour: 8, minute: 0 }
+        const feb28 = new Date(2026, 1, 28, 8, 0, 15) // 2026 is not a leap year
+
+        expect(shouldRun(last31At8, 120_000, feb28.getTime())).toBe(true)
+      })
+
+      it('should clamp day 31 to Feb 29 in a leap year', () => {
+        const last31At8: ParsedSchedule = { type: 'monthly', dayOfMonth: 31, hour: 8, minute: 0 }
+        const feb29 = new Date(2028, 1, 29, 8, 0, 15) // 2028 is a leap year
+
+        expect(shouldRun(last31At8, 120_000, feb29.getTime())).toBe(true)
+      })
+
+      it('should not double-fire on day 30 when clamped target is also 30', () => {
+        // dayOfMonth 31 clamped to 30 in April should only match d===30, not d===31 (impossible anyway)
+        const last31At8: ParsedSchedule = { type: 'monthly', dayOfMonth: 31, hour: 8, minute: 0 }
+        const apr29 = new Date(2026, 3, 29, 8, 0, 0) // Apr 29, not yet the clamped day
+
+        expect(shouldRun(last31At8, 120_000, apr29.getTime())).toBe(false)
+      })
+
+      it('should not clamp when the exact day exists in the month', () => {
+        const fifteenthAt8: ParsedSchedule = { type: 'monthly', dayOfMonth: 15, hour: 8, minute: 0 }
+        const jan31 = new Date(2026, 0, 31, 8, 0, 0)
+
+        expect(shouldRun(fifteenthAt8, 120_000, jan31.getTime())).toBe(false)
+      })
     })
   })
 })
