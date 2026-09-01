@@ -63,7 +63,7 @@ Open an issue with `[Feature]` prefix. Describe the use case, not just the solut
 
 Kagora has a plugin system — you can extend it without touching core code:
 
-1. Create a folder in `plugins/` with a `manifest.json`
+1. Create a folder in `plugins/` with a `plugin.json`
 2. Implement your plugin in `index.js`
 3. Use the Plugin Context API (chat, terminal, webhook, scheduler, events)
 4. See `plugins/hello-world/` for a working example
