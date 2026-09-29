@@ -7,6 +7,8 @@ All notable changes to Kagora will be documented in this file.
 ### Security
 - Patched `tar` critical vulnerability (process crash / DoS via PAX numeric path type confusion, unbounded decompression, and related advisories) and `postcss`, `js-yaml`, `fast-uri` high-severity advisories via `npm audit fix` (non-breaking, lockfile-only)
 - Bumped `electron` from `42.2.0` to `42.7.1` (latest patch in the 42.x line) to pick up upstream Chromium/Electron security fixes; no code changes required
+- Bumped `electron` from `42.7.1` to `42.11.8` (latest in the 42.x line); 42.7.1 was affected by several high-severity advisories published 2026-08-29 (sandbox inheritance for popups/windows, `<webview>` Node.js integration in Web Workers, cross-origin reads via file/HTTP protocol handlers, sandboxed preload code cache poisoning) fixed in 42.9.2/42.10.0 and later. Also bumped `@electron/rebuild` to `4.2.0`; no code changes required
+- Patched `undici` (WebSocket permessage-deflate DoS), `vitest`/`@vitest/mocker` advisories and `js-yaml` via `npm audit fix` (non-breaking); vitest now dedupes onto the project's vite 7
 
 ### Fixed
 - **Automation PATCH / IPC update missing field sanitization** — `PATCH /api/automations/:id` and the IPC `automations:update` handler passed unsanitized `schedule` and `description` fields directly to the store. Both paths now apply the same length caps and allowlisting used by the POST handler (`schedule` ≤ 64, `description` ≤ 512, `method` restricted to `chat`/`inject`, `target` validated via `isValidId`). Arbitrary data can no longer be written to `automations.json` via the update path.
