@@ -4,6 +4,9 @@ All notable changes to Kagora will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Upgraded `electron` from `42.11.8` to `44.5.0` (43 and 44 major lines). Reviewed the 43/44 breaking changes (Electron `clipboard` module removed from renderers, workers/DevTools preload changes, Linux frameless rounded corners, dialog `defaultPath`, 32-bit builds dropped); none affect Kagora (renderer uses the web `navigator.clipboard`), so no source changes were required
+
 ### Security
 - Patched `tar` critical vulnerability (process crash / DoS via PAX numeric path type confusion, unbounded decompression, and related advisories) and `postcss`, `js-yaml`, `fast-uri` high-severity advisories via `npm audit fix` (non-breaking, lockfile-only)
 - Bumped `electron` from `42.2.0` to `42.7.1` (latest patch in the 42.x line) to pick up upstream Chromium/Electron security fixes; no code changes required
