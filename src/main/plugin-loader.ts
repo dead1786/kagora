@@ -398,7 +398,8 @@ export class PluginLoader {
         }
       })
     } else {
-      route.handler(req, res, '').catch((err: Error) => {
+      // handler may be sync or async, and may throw synchronously
+      Promise.resolve().then(() => route.handler(req, res, '')).catch((err: Error) => {
         console.error(`[kagora-plugins] Webhook error (${pluginId}/${path}):`, err)
         if (!res.headersSent) {
           res.writeHead(500, { 'Content-Type': 'application/json' })

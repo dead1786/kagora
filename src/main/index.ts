@@ -343,7 +343,7 @@ function startChatAPI() {
     }
 
     if (req.method === 'GET' && pathname === '/api/chat') {
-      const url = new URL(req.url, 'http://localhost')
+      const url = new URL(req.url ?? '/', 'http://localhost')
       const channel = url.searchParams.get('channel') || 'group'
       const messages = chatStore.getMessages(channel)
       res.writeHead(200, { 'Content-Type': 'application/json' })

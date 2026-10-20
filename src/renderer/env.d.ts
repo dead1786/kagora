@@ -1,6 +1,7 @@
 interface KagoraAPI {
-  createTerminal: (agentId: string, shell?: string) => Promise<boolean>
+  createTerminal: (agentId: string, shell?: string, adminMode?: boolean) => Promise<boolean>
   sendTerminalInput: (agentId: string, data: string) => void
+  notifyTyping: (agentId: string) => void
   onTerminalData: (callback: (agentId: string, data: string) => void) => () => void
   resizeTerminal: (agentId: string, cols: number, rows: number) => void
   destroyTerminal: (agentId: string) => Promise<boolean>
